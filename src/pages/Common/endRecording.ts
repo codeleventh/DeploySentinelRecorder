@@ -1,7 +1,5 @@
-import { setEndRecordingStorage, localStorageGet } from './utils';
+import { localStorageGet, setEndRecordingStorage } from './utils';
 import { genCode } from '../builders';
-
-import { ScriptType } from '../types';
 
 export async function endRecording() {
   const { recording, returnTabId } = await localStorageGet([
@@ -12,7 +10,7 @@ export async function endRecording() {
 
   // We need to send the generated recording back to the webapp
   if (returnTabId != null) {
-    const code = genCode(recording, true, ScriptType.Playwright);
+    const code = genCode(recording);
 
     chrome.runtime.sendMessage({
       type: 'forward-recording',

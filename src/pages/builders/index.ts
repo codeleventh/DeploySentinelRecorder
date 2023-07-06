@@ -4,9 +4,9 @@ import type { Action } from '../types';
 import {
   ActionType,
   BaseAction,
+  isSupportedActionType,
   ScriptType,
   TagName,
-  isSupportedActionType,
 } from '../types';
 
 const FILLABLE_INPUT_TYPES = [
@@ -144,12 +144,9 @@ export abstract class ScriptBuilder {
 
   protected readonly actionContexts: ActionContext[];
 
-  protected readonly showComments: boolean;
-
-  constructor(showComments: boolean) {
+  constructor() {
     this.codes = [];
     this.actionContexts = [];
-    this.showComments = showComments;
   }
 
   abstract click: (selector: string, causesNavigation: boolean) => this;
@@ -205,11 +202,6 @@ export abstract class ScriptBuilder {
   abstract buildScript: () => string;
 
   private transformActionIntoCodes = (actionContext: ActionContext) => {
-    if (this.showComments) {
-      const actionDescription = actionContext.getDescription();
-      this.pushComments(`// ${actionDescription}`);
-    }
-
     const bestSelector = actionContext.getBestSelector();
     const tagName = actionContext.getTagName();
     const value = actionContext.getValue();
@@ -558,7 +550,7 @@ export class PuppeteerScriptBuilder extends ScriptBuilder {
 
   wheel = (deltaX: number, deltaY: number) => {
     this.pushCodes(
-      `await page.evaluate(() => window.scrollBy(${deltaX}, ${deltaY}));`
+      `await page.mouse.wheel({deltaX: ${deltaX}, deltaY: ${deltaY}});`
     );
     return this;
   };
@@ -595,15 +587,7 @@ export class PuppeteerScriptBuilder extends ScriptBuilder {
   };
 
   buildScript = () => {
-    return `const puppeteer = require('puppeteer');
-(async () => {
-  const browser = await puppeteer.launch({
-    // headless: false, slowMo: 100, // Uncomment to visualize test
-  });
-  const page = await browser.newPage();
-${this.codes.join('')}
-  await browser.close();
-})();`;
+    return `${this.codes.join('')}`;
   };
 }
 
@@ -691,26 +675,8 @@ export class CypressScriptBuilder extends ScriptBuilder {
   };
 }
 
-export const genCode = (
-  actions: Action[],
-  showComments: boolean,
-  scriptType: ScriptType
-): string => {
-  let scriptBuilder: ScriptBuilder;
-
-  switch (scriptType) {
-    case ScriptType.Playwright:
-      scriptBuilder = new PlaywrightScriptBuilder(showComments);
-      break;
-    case ScriptType.Puppeteer:
-      scriptBuilder = new PuppeteerScriptBuilder(showComments);
-      break;
-    case ScriptType.Cypress:
-      scriptBuilder = new CypressScriptBuilder(showComments);
-      break;
-    default:
-      throw new Error('Unsupported script type');
-  }
+export const genCode = (actions: Action[]): string => {
+  let scriptBuilder: ScriptBuilder = new PuppeteerScriptBuilder();
 
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i];
@@ -723,7 +689,7 @@ export const genCode = (
     const causesNavigation = nextAction?.type === ActionType.Navigate;
 
     scriptBuilder.pushActionContext(
-      new ActionContext(action, scriptType, {
+      new ActionContext(action, ScriptType.Puppeteer, {
         causesNavigation,
         isStateful: isActionStateful(action),
       })

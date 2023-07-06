@@ -1,7 +1,7 @@
 {
-  "name": "deploysentinel-recorder",
-  "version": "0.7.1",
-  "description": "A browser extension that generates Cypress, Playwright and Puppeteer scripts automatically from your browser interactions.",
+  "name": "deploysentinel-recorder-fork",
+  "version": "0.7.1.1",
+  "description": "A browser extension that generates Puppeteer scripts automatically from your browser interactions.",
   "license": "Apache-2.0",
   "scripts": {
     "build-chrome": "MANIFEST_VERSION=3 node utils/build.js && rm -f build/.DS_Store && zip -r build_chrome.zip build",

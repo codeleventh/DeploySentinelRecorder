@@ -30,7 +30,7 @@ export default function CodeGen({
       }}
       data-testid="code-block"
     >
-      {genCode(actions, true, library)}
+      {genCode(actions)}
     </SyntaxHighlighter>
   );
 }

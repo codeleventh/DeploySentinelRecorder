@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import throttle from 'lodash.throttle';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCamera,
-  faCopy,
   faCheck,
   faCheckCircle,
-  faTimes,
-  faChevronUp,
   faChevronDown,
+  faChevronUp,
+  faCopy,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 
 import Recorder from './recorder';
@@ -19,16 +19,15 @@ import ActionList from './ActionList';
 import CodeGen from './CodeGen';
 import genSelectors, { getBestSelectorForAction } from '../builders/selector';
 import { genCode } from '../builders';
-import ScriptTypeSelect from '../Common/ScriptTypeSelect';
-import { usePreferredLibrary, usePreferredBarPosition } from '../Common/hooks';
+import { usePreferredBarPosition, usePreferredLibrary } from '../Common/hooks';
 
 import type { Action } from '../types';
 import {
-  ActionType,
   ActionsMode,
+  ActionType,
+  BarPosition,
   ScriptType,
   TagName,
-  BarPosition,
 } from '../types';
 
 import ControlBarStyle from './ControlBar.css';
@@ -213,7 +212,7 @@ export default function ControlBar({ onExit }: { onExit: () => void }) {
     });
   }, []);
 
-  const displayedScriptType = preferredLibrary ?? ScriptType.Cypress;
+  const displayedScriptType = preferredLibrary ?? ScriptType.Puppeteer;
 
   const rect = hoveredElement?.getBoundingClientRect();
   const displayedSelector = getBestSelectorForAction(
@@ -382,12 +381,8 @@ export default function ControlBar({ onExit }: { onExit: () => void }) {
               <div>
                 {showActionsMode === ActionsMode.Code && (
                   <>
-                    <ScriptTypeSelect
-                      value={displayedScriptType}
-                      onChange={setPreferredLibrary}
-                    />
                     <CopyToClipboard
-                      text={genCode(actions, true, displayedScriptType)}
+                      text={genCode(actions)}
                       onCopy={() => {
                         setCopyCodeConfirm(true);
                         setTimeout(() => {
@@ -413,7 +408,7 @@ export default function ControlBar({ onExit }: { onExit: () => void }) {
             </div>
 
             {showActionsMode === ActionsMode.Code && (
-              <CodeGen actions={actions} library={displayedScriptType} />
+              <CodeGen actions={actions} library={ScriptType.Puppeteer} />
             )}
             {showActionsMode === ActionsMode.Actions && (
               <ActionList actions={actions} />
